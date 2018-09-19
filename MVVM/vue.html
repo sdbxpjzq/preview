@@ -1,0 +1,166 @@
+
+vue<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>简单实现Vue</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <div id="app">
+        <input type="text" v-model="name">{{name}}
+        <P v-text="name"></P>
+    </div>
+    <script>
+        class Vue {
+            constructor(options) {
+                this.data = options.data;
+                this.observe(this.data, this);
+                var dom = this.nodeToFragment(document.getElementById(options.el), this);
+                //编译完成后返回到app中
+                document.getElementById(options.el).appendChild(dom);
+            }
+            observe(data, vm) {
+                if (!data || typeof data !== 'object') {
+                    return;
+                }
+                Object.keys(data).forEach((key) => {
+                    this.defineReactive(vm, key, data[key]);
+                })
+            }
+            defineReactive(vm, key, value) {
+                //实例化一个主题对象，对象中有空的观察者列表
+                var dep = new Dep();
+                this.observe(value, vm); // 监听子属性
+                Object.defineProperty(vm, key, {
+                    get() {
+                        // 通过Dep定义一个全局target属性，暂存watcher, 添加完移除
+                        Dep.target && dep.addSub(Dep.target);
+                        return value;
+                    },
+                    set(newValue) {
+                        if (newValue === value) return;
+                        value = newValue;
+                        // 新的值是object的话，进行监听
+                        this.observe(newValue);
+                        // 通知所有订阅者
+                        dep.notify();
+                    },
+                });
+            }
+
+            nodeToFragment(node, vm) {
+                let flag = document.createDocumentFragment(), child;
+                //劫持node的所有子节点（真的在dom树中消失了，所以要在下边重新返回搭到app中）
+                while (child = node.firstChild) {
+                    //先编译所有的子节点，再劫持到文档片段中
+                    this.compile(child, vm);
+                    flag.appendChild(child);
+                }
+                return flag;
+            }
+
+            //编译节点，初始化数据绑定
+            compile(node, vm) {
+                //该正则匹配的是 ：{{任意内容}}
+                var reg = /\{\{(.*)\}\}/;
+                //节点类型为元素
+                if (node.nodeType === 1) {
+                    var attr = node.attributes;
+                    //解析属性，不同的属性不用的处理方式，这里只写了v-model属性
+                    for (var i = 0; i < attr.length; i++) {
+                        if (attr[i].nodeName == "v-model") {
+                            //获取节点中v-model属性的值，也就是绑定的属性名
+                            var name = attr[i].nodeValue;
+                            node.addEventListener("input", function (e) {
+                                //当触发input事件时改变vue.data中相应的属性的值，进而触发该属性的set方法
+                                vm[name] = e.target.value;
+                            });
+                            //改变之后，通过属性名取得数据
+                            node.value = vm.data[name];
+                            //用完删，所以浏览器中编译之后的节点上没有v-model属性
+                            node.removeAttribute("v-model");
+                        }
+
+                        // v-text
+                        if (attr[i] && attr[i].nodeName == "v-text") {
+                            //获取节点中v-model属性的值，也就是绑定的属性名
+                            var name = attr[i].nodeValue;
+                            new Watcher(vm, node, name);
+                            node.removeAttribute("v-text");
+                        }
+                    }
+                }
+
+
+                //节点类型为text
+                if (node.nodeType === 3) {
+                    //text是否满足文本插值的写法：{{任意内容}}
+                    if (reg.test(node.nodeValue)) {
+                        //获取匹配到的字符串：这里的RegExp.$1是RegExp的一个属性
+                        //该属性表示正则表达式reg中，第一个()里边的内容，也就是
+                        //{{任意内容}} 中的  文本【任意内容】
+                        var name = RegExp.$1;
+                        //去掉前后空格，并将处理后的数据写入节点
+                        name = name.trim();
+                        //node.nodeValue = vm.data[name];
+                        //实例化一个新的订阅者watcher
+                        new Watcher(vm, node, name);
+                        return;
+                    }
+                }
+
+            }
+        };
+
+        //主题对象Dep构造函数
+        class Dep {
+            constructor() {
+                this.subs = [];
+            }
+            addSub(sub) {
+                this.subs.push(sub);
+            }
+            notify() {
+                this.subs.forEach(function (sub) {
+                    sub.update();
+                });
+            }
+        }
+
+        // 观察者构造函数。
+        // 通过get()取得Vue.data中对应的数据，然后通过update()方法把数据更新到节点中。
+        class Watcher {
+            constructor(vm, node, name) {
+                //让全局变量Dep的target属性的指针指向该watcher实例
+                this.vm = vm;
+                this.node = node;
+                this.name = name;
+                this.update();
+            }
+            update() {
+                this.get();
+                this.node.nodeValue = this.value;
+                this.node.innerText = this.value;
+            }
+            // 获取data中的属性值 
+            get() {
+                Dep.target = this;// 将当前订阅者指向自己
+                this.value = this.vm[this.name]; // 触发getter，添加自己到属性订阅器中
+                Dep.target = null;    // 添加完毕，重置
+            }
+        }
+
+        var vm = new Vue({
+            el: "app",
+            data: {
+                name: "Hello Vue"
+            }
+        });
+    </script>
+</body>
+
+</html>
