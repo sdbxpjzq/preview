@@ -17,6 +17,7 @@
         class Vue {
             constructor(options) {
                 this.data = options.data;
+                // 监听数据
                 this.observe(this.data, this);
                 var dom = this.nodeToFragment(document.getElementById(options.el), this);
                 //编译完成后返回到app中

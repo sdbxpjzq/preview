@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>hello</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <script src="main.js"></script>
+</head>
+
+<body>
+    <script>
+        // let doms = document.getElementsByTagName('*');
+        // console.log(toString.call(doms)) //[object HTMLCollection]
+        // let domsTagArr = [];
+        // Array.from(doms).forEach(function(v,k) {
+        //     domsTagArr.push(((v.tagName.toLowerCase()))); // tagName 默认都是大写
+        // });
+
+        // console.log([...new Set(domsTagArr)]);
+
+        // JSON.stringify  三个参数问题 ,  那些类型是不可 stringify的, 如, undefined, function ,RegExp对象
+
+        a = function name(index, b) {
+            console.log(index)
+        }.bind(null, 12, 32);
+
+        console.log(a());
+
+        var params = [1, 1, 1, 1, 2, 3, 3, 4, 5, 4];
+        var o1 = { a: 1 };
+        var o2 = { b: 2 };
+        var o3 = { c: 3 };
+
+        var obj = Object.assign({}, o1, o2, o3);
+        console.log(obj); // { a: 1, b: 2, c: 3 }
+        console.log(o1);  // { a: 1, b: 2, c: 3 }, 注意目标对象自身也会改变。
+
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>

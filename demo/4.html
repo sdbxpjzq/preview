@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+
+    <!-- 将数组obj格式：
+var obj = [
+    {id:1, parent: null},
+    {id:2, parent: 1},
+    {id:3, parent: 2},
+];
+转换为obj2格式：
+var obj2 = {
+    obj: {
+        id: 1,
+        parent: null,
+        child: {
+            id: 2,
+            parent: 1,
+            child: {
+                id: 3,
+                parent: 2
+            }
+        }
+    } -->
+
+    <script>
+        var obj2 = {};
+        function createObj2(obj, child) {
+            if (child.parent) {
+                if (obj.obj) {
+                    createObj2(obj.obj, child);
+                } else {
+                    if (obj.id === child.parent) {
+                        obj.child = {
+                            id: child.id,
+                            parent: child.parent,
+                        }
+                    } else {
+                        if (obj.child) {
+                            createObj2(obj.child, child);
+                        } else {
+                            console.log('obj2未匹配到对应的parent对应关系')
+                        }
+                    }
+                }
+            } else {
+                obj.obj = {
+                    id: child.id,
+                    parent: child.parent,
+                    child: {}
+                }
+            }
+        }
+        
+        var obj = [
+            { id: 1, parent: null },
+            { id: 2, parent: 1 },
+            { id: 3, parent: 2 },
+        ];
+        
+        obj.forEach((item, item_i) => {
+            createObj2(obj2, item)
+        })
+        console.dir(obj2)
+        
+
+
+
+        // 方法 2
+        // function arr2obj(obj, parent) {
+        //     let targetObj;
+        //     obj.forEach(function (obj) {
+        //         if (obj.parent === parent) { targetObj = obj; }
+        //     });
+        //     if (targetObj) {
+        //         targetObj.child = arr2obj(obj, targetObj.id);
+        //         if (!targetObj.child) { delete targetObj.child; }
+        //         if (!targetObj.parent) { targetObj = { obj: targetObj } }
+        //     }
+        //     return targetObj;
+        // }
+
+    </script>
+
+</body>
+
+</html>
